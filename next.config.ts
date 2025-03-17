@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: "/リポジトリ名",
-  assetPrefix: "/リポジトリ名/",
+  basePath: "/yoogletodo",
+  assetPrefix: "/yoogletodo/",
 };
 
 export default nextConfig;
