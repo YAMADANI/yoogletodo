@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "YoogleToDo",
   description: "革命的なToDoリスト",
   icons: {
-    icon: "/icon.svg",
+    icon: "/yoogletodo/icon.svg",
   },
 };
 
