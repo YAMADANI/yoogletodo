@@ -1,0 +1,10 @@
+<svg width="500" height="500" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景サークル -->
+  <rect x="10" y="10" width="80" height="80" rx="20" fill="#6A0DAD"/>
+  
+  <!-- チェックマーク -->
+  <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 斜めライン（デザイン変更）-->
+  <line x1="15" y1="85" x2="85" y2="15" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+</svg>

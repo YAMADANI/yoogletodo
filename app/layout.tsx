@@ -19,6 +19,9 @@ const KronaOne = Krona_One({
 export const metadata: Metadata = {
   title: "YoogleToDo",
   description: "革命的なToDoリスト",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

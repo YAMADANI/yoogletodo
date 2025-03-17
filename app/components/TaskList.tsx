@@ -1,6 +1,6 @@
 type Todo = {
     id: string;
-    time: string;
+    time: number;
     content: string;
 };
 

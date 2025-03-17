@@ -1,58 +1,130 @@
 "use client";
 import { useState, useEffect } from "react";
-import TaskList from './components/TaskList';
-import AddTask from './components/AddTask';
+import TaskList from "./components/TaskList";
+import AddTask from "./components/AddTask";
 
 type Todo = {
   id: string;
-  time: string;
+  time: number;
   content: string;
 };
 
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
-
-  useEffect(() => {
-    const savedTodos = sessionStorage.getItem("todos");
-    if (savedTodos) {
-      setTodos(JSON.parse(savedTodos));
-    }
-  }, []);
-
-  const addTodo = (content: string) => {
-    const newTodo: Todo = {
-      id: crypto.randomUUID(),
-      time: new Date().toISOString(),
-      content,
-    };
-
-    const updatedTodos = [...todos, newTodo];
-    setTodos(updatedTodos);
-    sessionStorage.setItem("todos", JSON.stringify(updatedTodos));
-  };
-
-  const deleteTodo = (id: string) => {
-    const updatedTodos = todos.filter(todo => todo.id !== id);
-    setTodos(updatedTodos);
-    sessionStorage.setItem("todos", JSON.stringify(updatedTodos));
-  };
+  const [notificationTimers, setNotificationTimers] = useState<Map<string, NodeJS.Timeout>>(new Map());
 
   useEffect(() => {
     if (Notification.permission === "default") {
       Notification.requestPermission();
     }
 
-    const interval = setInterval(() => {
-      if (Notification.permission === "granted" && todos.length > 0) {
-        new Notification("📢 YoogleToDo", {
-          body: `${todos.length} 件のToDoが残ってるぞ！はよやれ！`,
-          icon: "/todo-icon.png",
-        });
-      }
-    }, 60000);
+    const savedTodos = sessionStorage.getItem("todos");
+    const savedTimers = sessionStorage.getItem("notificationTimers");
 
-    return () => clearInterval(interval);
-  }, [todos]);
+    if (savedTodos) {
+      const parsedTodos: Todo[] = JSON.parse(savedTodos);
+      setTodos(parsedTodos);
+
+      parsedTodos.forEach((todo) => {
+        const now = Date.now();
+        if (now >= todo.time + 60000) {
+          startRepeatingNotifications(todo);
+        } else {
+          const delay = todo.time + 60000 - now;
+          setTimeout(() => startRepeatingNotifications(todo), delay);
+        }
+      });
+    }
+
+    if (savedTimers) {
+      const parsedTimers: Record<string, boolean> = JSON.parse(savedTimers);
+      Object.keys(parsedTimers).forEach((id) => {
+        if (parsedTimers[id]) {
+          startRepeatingNotifications(todos.find((todo) => todo.id === id)!);
+        }
+      });
+    }
+
+    return () => {
+      notificationTimers.forEach((timer) => clearTimeout(timer));
+      notificationTimers.forEach((timer) => clearInterval(timer));
+    };
+  }, []);
+
+  const addTodo = (content: string) => {
+    const newTodo: Todo = {
+      id: crypto.randomUUID(),
+      time: Date.now(),
+      content,
+    };
+
+    const updatedTodos = [...todos, newTodo];
+    setTodos(updatedTodos);
+    sessionStorage.setItem("todos", JSON.stringify(updatedTodos));
+
+    scheduleNotification(newTodo);
+  };
+
+  const deleteTodo = (id: string) => {
+    clearNotifications(id);
+    const updatedTodos = todos.filter((todo) => todo.id !== id);
+    setTodos(updatedTodos);
+    sessionStorage.setItem("todos", JSON.stringify(updatedTodos));
+
+    // sessionStorage から通知情報を削除
+    const savedTimers = JSON.parse(sessionStorage.getItem("notificationTimers") || "{}");
+    delete savedTimers[id];
+    sessionStorage.setItem("notificationTimers", JSON.stringify(savedTimers));
+  };
+
+  const scheduleNotification = (todo: Todo) => {
+    const now = Date.now();
+    const initialDelay = Math.max(0, todo.time + 60000 - now);
+
+    setTimeout(() => {
+      startRepeatingNotifications(todo);
+    }, initialDelay);
+  };
+
+  const startRepeatingNotifications = (todo: Todo) => {
+    if (Notification.permission !== "granted") return;
+
+    new Notification(`YoogleToDo：${todo.content}`, {
+      body: "📢  やれ！早くやれ！！",
+      icon: "/icon.svg",
+    });
+
+    if (notificationTimers.has(todo.id)) {
+      clearInterval(notificationTimers.get(todo.id));
+    }
+
+    const interval = setInterval(() => {
+      new Notification(`YoogleToDo：${todo.content}`, {
+        body: "💢 まだやっとらんのか？ いい加減しろ！！",
+        icon: "/icon.svg",
+      });
+    }, 10000); // 10秒ごとに通知
+
+    const newTimers = new Map(notificationTimers);
+    newTimers.set(todo.id, interval);
+    setNotificationTimers(newTimers);
+
+    // sessionStorage に通知情報を保存
+    const savedTimers = JSON.parse(sessionStorage.getItem("notificationTimers") || "{}");
+    savedTimers[todo.id] = true;
+    sessionStorage.setItem("notificationTimers", JSON.stringify(savedTimers));
+  };
+
+  const clearNotifications = (id: string) => {
+    if (notificationTimers.has(id)) {
+      clearTimeout(notificationTimers.get(id));
+      clearInterval(notificationTimers.get(id));
+
+      const newTimers = new Map(notificationTimers);
+      newTimers.delete(id);
+      setNotificationTimers(newTimers);
+    }
+  };
 
   return (
     <main className="flex flex-col justify-center items-center h-screen bg-gray-100">
