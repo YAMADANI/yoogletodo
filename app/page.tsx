@@ -91,7 +91,7 @@ export default function Home() {
 
     new Notification(`YoogleToDo：${todo.content}`, {
       body: "📢  やれ！早くやれ！！",
-      icon: "/icon.svg",
+      icon: "/yoogletodo/icon.svg",
     });
 
     if (notificationTimers.has(todo.id)) {
@@ -101,7 +101,7 @@ export default function Home() {
     const interval = setInterval(() => {
       new Notification(`YoogleToDo：${todo.content}`, {
         body: "💢 まだやっとらんのか？ いい加減しろ！！",
-        icon: "/icon.svg",
+        icon: "/yoogletodo/icon.svg",
       });
     }, 10000); // 10秒ごとに通知
 
